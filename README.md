@@ -1,4 +1,4 @@
-# MUX Decoder
+# MUX - Signing JWTs With Cloudflare Workers
 
 A Cloudflare Worker that securely signs JWT tokens for MUX video playback.
 
