@@ -1,8 +1,12 @@
 import {Hono} from 'hono'
 import {env} from 'hono/adapter'
 import {sign} from '@tsndr/cloudflare-worker-jwt'
+import {cors} from 'hono/cors'
 
 const app = new Hono()
+
+// Skip cors
+app.use('*', cors())
 
 
 app.post('/get-token', async (c) => {
@@ -23,22 +27,27 @@ app.post('/get-token', async (c) => {
     } =
         env<Record<string, string>>(c)
 
-    let playbackId = null
+    let body = null
 
     try {
-        playbackId = await c.req.json()
-        if (!playbackId) {
+        body = await c.req.json()
+        if (!body) {
             return c.json({error: 'Missing playbackId'}, 400)
         }
+        console.log(body['assetTime'])
     } catch (err) {
         return c.json({error: 'Invalid JSON'}, 400)
     }
 
-    const payload = {
-        sub: playbackId['playbackId'],
+    const payload: Record<string, any> = {
+        sub: body['playbackId'],
         aud: 'v',
-        exp: Math.floor(Date.now() / 1000) + (60 * 60), // in seconds
+        exp: Math.floor(Date.now() / 1000) + (86400),
         kid: keyId,
+    }
+
+    if (body['assetTime'] && Number.isInteger(Number(body['assetTime']))) {
+        payload['asset_end_time'] = body['assetTime']
     }
 
     try {
