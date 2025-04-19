@@ -5,7 +5,7 @@ import {cors} from 'hono/cors'
 
 const app = new Hono()
 
-// Skip cors
+// Enable CORS
 app.use('*', cors())
 
 
@@ -31,10 +31,8 @@ app.post('/get-token', async (c) => {
 
     try {
         body = await c.req.json()
-        if (!body) {
+        if (!body)
             return c.json({error: 'Missing playbackId'}, 400)
-        }
-        console.log(body['assetTime'])
     } catch (err) {
         return c.json({error: 'Invalid JSON'}, 400)
     }
@@ -49,17 +47,15 @@ app.post('/get-token', async (c) => {
     if (body['assetTime'] && Number.isInteger(Number(body['assetTime']))) {
         payload['asset_end_time'] = body['assetTime']
     }
-
+    
     try {
         const token = await sign(payload, atob(keySecret), {
             algorithm: 'RS256',
         })
         return c.json({token})
     } catch (err) {
-        console.error(err)
         return c.json({error: 'Failed to generate token'}, 500)
     }
-
 })
 
 export default app
